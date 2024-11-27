@@ -1,7 +1,7 @@
 # GraphicsLibrary
 
 ## 项目概述
-这是一个简单的图形函数库，使用 Windows API 实现绘制直线段、圆弧、椭圆弧、填充多边形区域以及显示名字等功能。该项目采用 C++ 编写，并使用 CMake 构建工具。
+这是一个简单的图形函数库，有绘制直线段、圆弧、椭圆弧、填充多边形区域以及显示名字等功能。该项目采用 C++ 编写，并使用 CMake 构建工具。
 
 ## 功能列表
 - 绘制直线段
@@ -27,11 +27,15 @@
 .\run.bat
 ```
 
-
-## 注意事项
-
-确保 setpixel 函数在 Windows 环境中可用。
-
-如果运行时报错，请检查 MinGW 的安装是否完整，特别是 gdi32 库的支持。
-
 ## 项目结构
+
+```css
+GraphicsLibrary/
+|── README.md
+├── CMakeLists.txt
+├── run.bat
+├── src/
+│   ├── main.cpp
+│   ├── graphics.cpp
+│   └── graphics.h
+```

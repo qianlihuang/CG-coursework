@@ -11,7 +11,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             DrawEllipseArc(hdc, 250, 250, 100, 60, 0, 180, RGB(0, 0, 255));
             POINT points[] = {{100, 100}, {200, 100}, {150, 200}};
             FillPolygon(hdc, points, 3, RGB(255, 255, 0));
-            DrawName(hdc, L"Yiliu Dong", 150, 300, RGB(255, 0, 255));
+            DrawName(hdc, L"YILIU DONG", 150, 300, RGB(255, 0, 255));
             EndPaint(hwnd, &ps);
         } break;
 
