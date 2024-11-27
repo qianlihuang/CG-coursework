@@ -12,14 +12,26 @@
 
 ## 编译与运行
 
-1. 安装 [CMake](https://cmake.org/download/) 和 [Visual Studio](https://visualstudio.microsoft.com/)，并确保在 Windows 上能够构建 C++ 程序。
+## 依赖
 
+- Windows 系统
+- CMake
+- MinGW 或其他支持 Windows 的 g++ 编译器
+
+## 步骤
+
+1. 安装 CMake 和 MinGW。确保 cmake 和 g++ 已正确配置到系统路径。
 2. 使用以下命令编译并运行项目：
 
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
-.\GraphicsLibrary.exe
+```shell
+.\run.bat
 ```
+
+
+## 注意事项
+
+确保 setpixel 函数在 Windows 环境中可用。
+
+如果运行时报错，请检查 MinGW 的安装是否完整，特别是 gdi32 库的支持。
+
+## 项目结构

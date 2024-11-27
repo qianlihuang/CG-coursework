@@ -4,10 +4,8 @@
 #include <algorithm>
 
 void DrawLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF color) {
-    int dx = abs(x2 - x1);
-    int dy = abs(y2 - y1);
-    int sx = (x1 < x2) ? 1 : -1;
-    int sy = (y1 < y2) ? 1 : -1;
+    int dx = abs(x2 - x1), dy = abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1, sy = (y1 < y2) ? 1 : -1;
     int err = dx - dy;
 
     while (true) {
@@ -20,35 +18,37 @@ void DrawLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF color) {
 }
 
 void DrawArc(HDC hdc, int cx, int cy, int radius, int startAngle, int endAngle, COLORREF color) {
-    float startRad = startAngle * 3.14159 / 180;
-    float endRad = endAngle * 3.14159 / 180;
+    float startRad = startAngle * 3.14159f / 180;
+    float endRad = endAngle * 3.14159f / 180;
+    float step = 1.0f / radius; // 根据半径动态调整步长
 
-    for (float angle = startRad; angle <= endRad; angle += 0.01) {
-        int x = cx + radius * cos(angle);
-        int y = cy + radius * sin(angle);
+    for (float angle = startRad; angle <= endRad; angle += step) {
+        int x = cx + static_cast<int>(radius * cos(angle));
+        int y = cy + static_cast<int>(radius * sin(angle));
         SetPixel(hdc, x, y, color);
     }
 }
 
 void DrawEllipseArc(HDC hdc, int cx, int cy, int a, int b, int startAngle, int endAngle, COLORREF color) {
-    float startRad = startAngle * 3.14159 / 180;
-    float endRad = endAngle * 3.14159 / 180;
+    float startRad = startAngle * 3.14159f / 180;
+    float endRad = endAngle * 3.14159f / 180;
+    float step = 1.0f / std::max(a, b);
 
-    for (float angle = startRad; angle <= endRad; angle += 0.01) {
-        int x = cx + a * cos(angle);
-        int y = cy + b * sin(angle);
+    for (float angle = startRad; angle <= endRad; angle += step) {
+        int x = cx + static_cast<int>(a * cos(angle));
+        int y = cy + static_cast<int>(b * sin(angle));
         SetPixel(hdc, x, y, color);
     }
 }
 
 void FillPolygon(HDC hdc, POINT *points, int n, COLORREF color) {
-    int yMin = points[0].y, yMax = points[0].y;
+    LONG yMin = points[0].y, yMax = points[0].y;
     for (int i = 1; i < n; i++) {
-        if (points[i].y < yMin) yMin = points[i].y;
-        if (points[i].y > yMax) yMax = points[i].y;
+        yMin = std::min(yMin, points[i].y);
+        yMax = std::max(yMax, points[i].y);
     }
 
-    for (int y = yMin; y <= yMax; y++) {
+    for (LONG y = yMin; y <= yMax; y++) {
         std::vector<int> intersections;
         for (int i = 0; i < n; i++) {
             int j = (i + 1) % n;
@@ -59,7 +59,7 @@ void FillPolygon(HDC hdc, POINT *points, int n, COLORREF color) {
         }
 
         std::sort(intersections.begin(), intersections.end());
-        for (size_t i = 0; i < intersections.size(); i += 2) {
+        for (size_t i = 0; i + 1 < intersections.size(); i += 2) { // 防止越界
             for (int x = intersections[i]; x <= intersections[i + 1]; x++) {
                 SetPixel(hdc, x, y, color);
             }
@@ -67,7 +67,8 @@ void FillPolygon(HDC hdc, POINT *points, int n, COLORREF color) {
     }
 }
 
-void DrawName(HDC hdc, const char *name, int x, int y, COLORREF color) {
+void DrawName(HDC hdc, const wchar_t *name, int x, int y, COLORREF color) {
     SetTextColor(hdc, color);
-    TextOut(hdc, x, y, name, strlen(name));
+    SetBkMode(hdc, TRANSPARENT); // 透明背景
+    TextOutW(hdc, x, y, name, wcslen(name));
 }
