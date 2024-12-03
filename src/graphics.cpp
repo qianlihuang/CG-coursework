@@ -102,7 +102,7 @@ void DrawLetterU(HDC hdc, int x, int y, COLORREF color) {
 // 绘制字母 'D' 的函数
 void DrawLetterD(HDC hdc, int x, int y, COLORREF color) {
     DrawLine(hdc, x, y, x, y + 40, color);           // 垂直线
-    DrawArc(hdc, x + 20, y + 20, 20, 0, 180, color); // 半圆弧（右边）
+    DrawArc(hdc, x, y + 20, 20, 270, 450, color); // 半圆弧（右边）
 }
 
 // 绘制字母 'O' 的函数
@@ -120,7 +120,7 @@ void DrawLetterN(HDC hdc, int x, int y, COLORREF color) {
 // 绘制字母 'G' 的函数
 void DrawLetterG(HDC hdc, int x, int y, COLORREF color) {
     DrawArc(hdc, x + 20, y + 20, 20, 0, 270, color); // 弧形（3/4圆）
-    DrawLine(hdc, x + 20, y + 40, x + 10, y + 40, color); // 底部横线
+    DrawLine(hdc, x + 20, y + 20, x + 40, y + 20, color); // 底部横线
 }
 
 // 绘制名字的函数
@@ -132,10 +132,10 @@ void DrawName(HDC hdc, const wchar_t *name, int x, int y, COLORREF color) {
             case L'I': DrawLetterI(hdc, x, y, color); break;
             case L'L': DrawLetterL(hdc, x, y, color); break;
             case L'U': DrawLetterU(hdc, x, y, color); break;
-            // case L'D': DrawLetterD(hdc, x, y, color); break;
-            // case L'O': DrawLetterO(hdc, x, y, color); break;
-            // case L'N': DrawLetterN(hdc, x, y, color); break;
-            // case L'G': DrawLetterG(hdc, x, y, color); break;
+            case L'D': DrawLetterD(hdc, x, y, color); break;
+            case L'O': DrawLetterO(hdc, x, y, color); break;
+            case L'N': DrawLetterN(hdc, x, y, color); break;
+            case L'G': DrawLetterG(hdc, x, y, color); break;
             default: 
                 // 如果字母不在case中，直接绘制字母
                 SetTextColor(hdc, color);
