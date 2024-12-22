@@ -6,6 +6,7 @@
 // Modified by Yiliu Dong
 // Modifications:
 // 1. Allow control of light position using WASD keys
+// 2. Add custom light
 
 
 #include <windows.h>
@@ -23,11 +24,60 @@ GLfloat specref[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat lightPos[] = { 0.0f, 0.0f, 2.0f, 1.0f }; // Initial light position
 
 static int iShape = 1; // Shape code
+static int iLight = 0; // Light code
 
 ///////////////////////////////////////////////////////////////////////////////
+
+// Function to generate random floats between a given range
+float RandomFloat(float min, float max) {
+    return min + (float)rand() / (float)(RAND_MAX / (max - min));
+}
+
+// Function to set random parameters for light 1
+void SetRandomLight1() {
+    GLfloat ambientLight1[] = { 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        1.0f 
+    };
+    
+    GLfloat diffuseLight1[] = { 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        1.0f 
+    };
+    
+    GLfloat specular1[] = { 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        RandomFloat(0.0f, 1.0f), 
+        1.0f 
+    };
+
+    // Apply the random values to light 1
+    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, specular1);
+    glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+}
+
 // Reset flags as appropriate in response to menu selections
 void ProcessMenu(int value) {
-    iShape = value;
+    if (value < 20) { // magic number 20 is the number of shapes
+        iShape = value;
+    } else {
+        iLight = value - 20;
+        if (iLight == 0) {
+            glEnable(GL_LIGHT0);
+            glDisable(GL_LIGHT1);
+        } else if (iLight == 1) {
+            SetRandomLight1();
+            glEnable(GL_LIGHT1);
+            glDisable(GL_LIGHT0);
+        }
+    }
     glutPostRedisplay();
 }
 
@@ -37,7 +87,11 @@ void RenderScene(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update light position
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    if (iLight == 0) {
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    } else if (iLight == 1) {
+        glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+    }
 
     // Save matrix state and do the rotation
     glPushMatrix();
@@ -142,6 +196,10 @@ void SetupRC() {
     glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
     glEnable(GL_LIGHT0);
 
+    // Setup and enable light 1
+    SetRandomLight1();
+    glEnable(GL_LIGHT1);
+
     glShadeModel(GL_SMOOTH);
 
     // Enable color tracking
@@ -234,6 +292,7 @@ int main() {
     int nSolidMenu;
     int nWireMenu;
     int nMainMenu;
+    int nLightMenu;
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutCreateWindow("GLUT Shapes");
@@ -261,9 +320,14 @@ int main() {
     glutAddMenuEntry("Icosahedron", 18);
     glutAddMenuEntry("Teapot", 19);
 
+    nLightMenu = glutCreateMenu(ProcessMenu);
+    glutAddMenuEntry("Light 0", 20);
+    glutAddMenuEntry("Light 1", 21);
+
     nMainMenu = glutCreateMenu(ProcessMenu);
     glutAddSubMenu("Wire", nWireMenu);
     glutAddSubMenu("Solid", nSolidMenu);
+    glutAddSubMenu("Light", nLightMenu);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     glutReshapeFunc(ChangeSize);   // Function for changing window size
