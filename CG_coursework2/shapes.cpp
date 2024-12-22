@@ -26,38 +26,7 @@ GLfloat lightPos[] = { 0.0f, 0.0f, 2.0f, 1.0f }; // Initial light position
 static int iShape = 1; // Shape code
 static int iLight = 0; // Light code
 
-GLuint texture; // Texture object
-int textureEnabled = 0; // Flag to toggle texture on/off
-
 ///////////////////////////////////////////////////////////////////////////////
-
-// Function to generate a simple checkerboard texture
-void GenerateTexture() {
-    unsigned char textureData[64 * 64 * 3]; // 64x64 checkerboard texture (RGB)
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            int c = ((i + j) % 2) * 255;  // Alternating colors (white/black)
-            textureData[(i * 64 + j) * 3 + 0] = c;  // Red
-            textureData[(i * 64 + j) * 3 + 1] = c;  // Green
-            textureData[(i * 64 + j) * 3 + 2] = c;  // Blue
-        }
-    }
-
-    glGenTextures(1, &texture);  // Generate texture ID
-    glBindTexture(GL_TEXTURE_2D, texture);  // Bind the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);  // Load texture data
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-}
-
-// Function to enable/disable texture
-void ToggleTexture(int value) {
-    textureEnabled = value;  // Set texture enable/disable flag
-    glutPostRedisplay();  // Redraw the scene
-}
 
 // Function to generate random floats between a given range
 float RandomFloat(float min, float max) {
@@ -66,21 +35,21 @@ float RandomFloat(float min, float max) {
 
 // Function to set random parameters for light 1
 void SetRandomLight1() {
-    GLfloat ambientLight1[] = {
+    GLfloat ambientLight1[] = { 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
         1.0f 
     };
     
-    GLfloat diffuseLight1[] = {
+    GLfloat diffuseLight1[] = { 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
         1.0f 
     };
     
-    GLfloat specular1[] = {
+    GLfloat specular1[] = { 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
         RandomFloat(0.0f, 1.0f), 
@@ -129,15 +98,6 @@ void RenderScene(void) {
     glRotatef(xRot, 1.0f, 0.0f, 0.0f);
     glRotatef(yRot, 0.0f, 1.0f, 0.0f);
 
-    // Enable texture if needed
-    if (textureEnabled) {
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, texture);  // Bind the generated texture
-    } else {
-        glDisable(GL_TEXTURE_2D);  // Disable texture if not enabled
-    }
-
-    // Drawing the shape based on the selected menu
     switch (iShape) {
         case 1:
             glutWireSphere(1.0f, 25, 25);
@@ -333,7 +293,6 @@ int main() {
     int nWireMenu;
     int nMainMenu;
     int nLightMenu;
-    int nTextureMenu;
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutCreateWindow("GLUT Shapes");
@@ -365,22 +324,16 @@ int main() {
     glutAddMenuEntry("Light 0", 20);
     glutAddMenuEntry("Light 1", 21);
 
-    nTextureMenu = glutCreateMenu(ToggleTexture);  // Create texture toggle menu
-    glutAddMenuEntry("Enable Texture", 1);   // Enable texture
-    glutAddMenuEntry("Disable Texture", 0);  // Disable texture
-
     nMainMenu = glutCreateMenu(ProcessMenu);
     glutAddSubMenu("Wire", nWireMenu);
     glutAddSubMenu("Solid", nSolidMenu);
     glutAddSubMenu("Light", nLightMenu);
-    glutAddSubMenu("Texture", nTextureMenu);  // Add texture menu
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     glutReshapeFunc(ChangeSize);   // Function for changing window size
-    glutSpecialFunc(SpecialKeys);  // Function for processing arrow keys
-    glutKeyboardFunc(KeyboardFunc);  // Function for processing WASD keys
-    glutDisplayFunc(RenderScene);  // Display call
-    GenerateTexture();  // Generate the texture
+    glutSpecialFunc(SpecialKeys); // Function for processing arrow keys
+    glutKeyboardFunc(KeyboardFunc); // Function for processing WASD keys
+    glutDisplayFunc(RenderScene); // Display call
     SetupRC();
     glutMainLoop();
 }
