@@ -35,7 +35,6 @@ GLuint earthTexture;
 
 // Load the Earth texture
 void LoadEarthTexture() {
-    std::cout << "Loading Earth texture..." << std::endl;
     earthTexture = SOIL_load_OGL_texture(
         "earth.jpg",
         SOIL_LOAD_AUTO,
@@ -45,9 +44,9 @@ void LoadEarthTexture() {
 
     if (!earthTexture) {
         std::cerr << "Failed to load Earth texture: " << SOIL_last_result() << std::endl;
-        exit(1);
+        // exit(1);
     } else {
-        std::cout << "Earth texture loaded successfully." << std::endl;
+        // std::cout << "Earth texture loaded successfully." << std::endl;
     }
 
     glBindTexture(GL_TEXTURE_2D, earthTexture);
@@ -59,9 +58,11 @@ void LoadEarthTexture() {
 
 // Render Earth shape with texture
 void RenderEarth() {
-    std::cout << "Rendering Earth..." << std::endl;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, earthTexture);
+
+    // Set material color to white to ensure texture color is used
+    glColor3f(1.0f, 1.0f, 1.0f);
 
     GLUquadric *quadric = gluNewQuadric();
     gluQuadricTexture(quadric, GL_TRUE);
@@ -69,7 +70,6 @@ void RenderEarth() {
     gluDeleteQuadric(quadric);
 
     glDisable(GL_TEXTURE_2D);
-    std::cout << "Earth rendered." << std::endl;
 }
 
 // Function to generate random floats between a given range
