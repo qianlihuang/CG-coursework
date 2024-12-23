@@ -7,10 +7,12 @@
 // Modifications:
 // 1. Allow control of light position using WASD keys
 // 2. Add custom light
+// 3. Add Earth
 
-
+#include <iostream>
 #include <windows.h>
 #include <glut.h>
+#include <SOIL.h>
 
 // Rotation amounts
 static GLfloat xRot = 0.0f;
@@ -26,7 +28,49 @@ GLfloat lightPos[] = { 0.0f, 0.0f, 2.0f, 1.0f }; // Initial light position
 static int iShape = 1; // Shape code
 static int iLight = 0; // Light code
 
+// Global variable for the Earth texture
+GLuint earthTexture;
+
 ///////////////////////////////////////////////////////////////////////////////
+
+// Load the Earth texture
+void LoadEarthTexture() {
+    std::cout << "Loading Earth texture..." << std::endl;
+    earthTexture = SOIL_load_OGL_texture(
+        "earth.jpg",
+        SOIL_LOAD_AUTO,
+        SOIL_CREATE_NEW_ID,
+        SOIL_FLAG_INVERT_Y
+    );
+
+    if (!earthTexture) {
+        std::cerr << "Failed to load Earth texture: " << SOIL_last_result() << std::endl;
+        exit(1);
+    } else {
+        std::cout << "Earth texture loaded successfully." << std::endl;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, earthTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+// Render Earth shape with texture
+void RenderEarth() {
+    std::cout << "Rendering Earth..." << std::endl;
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, earthTexture);
+
+    GLUquadric *quadric = gluNewQuadric();
+    gluQuadricTexture(quadric, GL_TRUE);
+    gluSphere(quadric, 1.0, 25, 25); // Earth sphere
+    gluDeleteQuadric(quadric);
+
+    glDisable(GL_TEXTURE_2D);
+    std::cout << "Earth rendered." << std::endl;
+}
 
 // Function to generate random floats between a given range
 float RandomFloat(float min, float max) {
@@ -65,7 +109,7 @@ void SetRandomLight1() {
 
 // Reset flags as appropriate in response to menu selections
 void ProcessMenu(int value) {
-    if (value < 20) { // magic number 20 is the number of shapes
+    if (value < 20 || value == 22) { // magic number 20 is the number of shapes
         iShape = value;
     } else {
         iLight = value - 20;
@@ -165,6 +209,10 @@ void RenderScene(void) {
 
         case 18:
             glutSolidIcosahedron();
+            break;
+
+        case 22:
+            RenderEarth();
             break;
 
         default:
@@ -289,10 +337,12 @@ void ChangeSize(int w, int h) {
 }
 
 int main() {
+
     int nSolidMenu;
     int nWireMenu;
     int nMainMenu;
     int nLightMenu;
+    int nOtherMenu;
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutCreateWindow("GLUT Shapes");
@@ -324,16 +374,22 @@ int main() {
     glutAddMenuEntry("Light 0", 20);
     glutAddMenuEntry("Light 1", 21);
 
+    nOtherMenu = glutCreateMenu(ProcessMenu);
+    glutAddMenuEntry("Earth", 22);
+
     nMainMenu = glutCreateMenu(ProcessMenu);
     glutAddSubMenu("Wire", nWireMenu);
     glutAddSubMenu("Solid", nSolidMenu);
     glutAddSubMenu("Light", nLightMenu);
+    glutAddSubMenu("Other", nOtherMenu);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     glutReshapeFunc(ChangeSize);   // Function for changing window size
     glutSpecialFunc(SpecialKeys); // Function for processing arrow keys
     glutKeyboardFunc(KeyboardFunc); // Function for processing WASD keys
     glutDisplayFunc(RenderScene); // Display call
+    LoadEarthTexture();
     SetupRC();
     glutMainLoop();
+
 }
