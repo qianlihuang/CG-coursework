@@ -1,0 +1,3 @@
+C:/Users/ppio/Desktop/111/CG-coursework/CG_coursework1/build/CMakeFiles/GraphicsLibrary.dir
+C:/Users/ppio/Desktop/111/CG-coursework/CG_coursework1/build/CMakeFiles/edit_cache.dir
+C:/Users/ppio/Desktop/111/CG-coursework/CG_coursework1/build/CMakeFiles/rebuild_cache.dir

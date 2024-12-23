@@ -1,0 +1,3 @@
+C:\cmake-3.31.1-windows-x86_64\cmake-3.31.1-windows-x86_64\bin\cmake.exe -E rm -f CMakeFiles\GraphicsLibrary.dir/objects.a
+C:\MinGW\bin\ar.exe qc CMakeFiles\GraphicsLibrary.dir/objects.a @CMakeFiles\GraphicsLibrary.dir\objects1.rsp
+C:\MinGW\bin\c++.exe  -DUNICODE -D_UNICODE -mwindows -Wl,--whole-archive CMakeFiles\GraphicsLibrary.dir/objects.a -Wl,--no-whole-archive -o GraphicsLibrary.exe -Wl,--out-implib,libGraphicsLibrary.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\GraphicsLibrary.dir\linkLibs.rsp
