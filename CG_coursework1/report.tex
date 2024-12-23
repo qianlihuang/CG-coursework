@@ -1,0 +1,180 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{ctex}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+
+% 设置页面边距
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% 设置代码样式
+\lstset{
+  language=C++,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!10}
+}
+
+\title{实验报告：GraphicsLibrary}
+\author{董奕柳}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{项目概述}
+这是一个简单的图形函数库，用于绘制基本的几何图形和文本显示，包含以下功能：
+\begin{itemize}
+    \item 绘制直线段
+    \item 绘制圆弧
+    \item 绘制椭圆弧
+    \item 多边形区域填充
+    \item 显示名字
+\end{itemize}
+
+该项目采用 C++ 编写，并使用 CMake 构建工具。
+
+\section{功能设计}
+
+\subsection{绘制直线段}
+直线段的绘制基于 Bresenham 算法，其核心思想是通过整数计算近似实现直线段的绘制，避免使用浮点运算，从而提高效率。算法的数学公式及伪代码如下：
+
+\subsubsection{数学公式}
+假设起始点为 \((x_1, y_1)\)，终点为 \((x_2, y_2)\)，直线段的斜率为 \(k = \frac{\Delta y}{\Delta x}\)，其中：
+\[
+\Delta x = x_2 - x_1, \quad \Delta y = y_2 - y_1
+\]
+
+Bresenham 算法通过计算误差项 \(e\) 来决定当前像素的位置更新：
+\[
+e = 2\Delta y - \Delta x
+\]
+
+根据误差更新规则：
+- 若 \(e > 0\)，则表示需要调整纵坐标 \(y\)： 
+\[
+e = e - 2\Delta x
+\]
+- 否则，只调整横坐标 \(x\)： 
+\[
+e = e + 2\Delta y
+\]
+
+\subsubsection{算法描述}
+\begin{algorithm}[H]
+\caption{Bresenham 绘制直线段算法}
+\begin{algorithmic}[1]
+\Require 起始点 \((x_1, y_1)\)，终点 \((x_2, y_2)\)
+\Ensure 绘制从 \((x_1, y_1)\) 到 \((x_2, y_2)\) 的直线段
+\State 计算 \(\Delta x = |x_2 - x_1|\), \(\Delta y = |y_2 - y_1|\)
+\State 初始化误差项 \(e = 2 \Delta y - \Delta x\)
+\State 设置步长 \(y_{\text{step}} = 1\) 若 \(y_2 > y_1\)，否则 \(y_{\text{step}} = -1\)
+\State 初始化 \(y = y_1\)
+\For{\(x = x_1\) to \(x_2\)}
+    \State 绘制点 \((x, y)\)
+    \If{\(e > 0\)}
+        \State \(y \gets y + y_{\text{step}}\)
+        \State \(e \gets e - 2 \Delta x\)
+    \EndIf
+    \State \(e \gets e + 2 \Delta y\)
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{绘制椭圆弧}
+椭圆弧的绘制基于参数方程，其核心思想是使用角度增量逐点计算椭圆弧上的像素点。特别地，当椭圆的长轴和短轴相等时，椭圆弧就退化为圆弧。
+
+\subsubsection{数学公式}
+椭圆弧的参数方程为：
+\[
+(x, y) = (cx + a \cos \theta, cy + b \sin \theta), \quad \theta \in [\text{start}, \text{end}]
+\]
+其中：
+- \((cx, cy)\) 为椭圆的中心坐标；
+- \(a\) 为椭圆的长轴半径；
+- \(b\) 为椭圆的短轴半径；
+- \(\theta\) 为椭圆弧的角度。
+
+当 \(a = b\) 时，椭圆弧退化为圆弧，其参数方程变为：
+\[
+(x, y) = (cx + r \cos \theta, cy + r \sin \theta), \quad \theta \in [\text{start}, \text{end}]
+\]
+其中 \(r = a = b\) 为圆的半径。
+
+\subsubsection{算法描述}
+\begin{algorithm}[H]
+\caption{椭圆弧绘制算法}
+\begin{algorithmic}[1]
+\Require 椭圆中心 \((cx, cy)\)，长轴 \(a\)，短轴 \(b\)，起始角度 \(\text{start}\)，终止角度 \(\text{end}\)
+\Ensure 绘制从起始角度到终止角度的椭圆弧
+\State 设置步长 \(\text{step}\) 用于角度增量
+\For{\(\theta = \text{start}\) to \(\text{end}\) step \(\text{step}\)}
+    \State \(x \gets cx + a \cos \theta\)
+    \State \(y \gets cy + b \sin \theta\)
+    \State 绘制点 \((x, y)\)
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{多边形填充}
+多边形填充基于扫描线算法，其核心思想是逐行扫描像素并填充多边形内部区域。
+
+\subsubsection{数学公式}
+设多边形的顶点集合为 \((v_1, v_2, \dots, v_n)\)，对于扫描线 \(y = k\)，交点的 \(x\)-坐标可以通过多边形的边方程计算：
+\[
+x = x_1 + \frac{(k - y_1)(x_2 - x_1)}{y_2 - y_1}, \quad y_1 \leq k < y_2
+\]
+
+\subsubsection{算法描述}
+\begin{algorithm}[H]
+\caption{扫描线多边形填充算法}
+\begin{algorithmic}[1]
+\Require 多边形顶点集合 \((v_1, v_2, \dots, v_n)\)
+\Ensure 填充多边形内部
+\State 计算多边形的最小 \(y\)-坐标 \(y_{\text{min}}\) 和最大 \(y\)-坐标 \(y_{\text{max}}\)
+\For{\(y = y_{\text{min}}\) to \(y_{\text{max}}\)}
+    \State 找到扫描线与多边形边的交点集合
+    \State 按 \(x\)-坐标对交点排序
+    \For{每对交点 \((x_{\text{left}}, x_{\text{right}})\)}
+        \State 填充从 \(x_{\text{left}}\) 到 \(x_{\text{right}}\) 之间的像素
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\section{结果展示}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graphic_result.png}
+    \caption{通过图形库绘制的图形效果展示}
+    \label{fig:result}
+\end{figure}
+
+图1展示了通过本图形库绘制的不同图形及其效果，包括以下几个部分：
+
+\begin{itemize}
+    \item \textbf{红色直线段}：从点 \((50, 50)\) 到点 \((400, 50)\)，在窗口的顶部水平排列。
+    \item \textbf{绿色半圆弧}：圆心位于 \((300, 200)\)，半径为 100，起始角度为 0 度，终止角度为 180 度，形成一个半圆。
+    \item \textbf{蓝色椭圆弧}：圆心位于 \((500, 200)\)，长轴为 100，短轴为 60，起始角度为 0 度，终止角度为 180 度，形成一个椭圆弧。
+    \item \textbf{黄色三角形}：顶点分别位于 \((150, 150)\)、\((250, 150)\) 和 \((200, 250)\)，并进行了填充。
+    \item \textbf{紫色文本}：在位置 \((150, 350)\) 绘制的“YILIU DONG”文本，展示了如何在图形界面中插入文本。
+\end{itemize}
+
+\section{总结}
+通过本图形库，我们能够方便地绘制直线段、圆弧、椭圆弧和多边形填充，并实现文本显示功能。
+
+\end{document}
