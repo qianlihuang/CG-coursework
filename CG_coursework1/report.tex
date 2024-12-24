@@ -177,4 +177,352 @@ x = x_1 + \frac{(k - y_1)(x_2 - x_1)}{y_2 - y_1}, \quad y_1 \leq k < y_2
 \section{总结}
 通过本图形库，我们能够方便地绘制直线段、圆弧、椭圆弧和多边形填充，并实现文本显示功能。
 
+\appendix
+\section{附录}
+
+\subsection{README.md}
+\begin{lstlisting}[language=Markdown]
+# GraphicsLibrary
+
+## 项目概述
+这是一个简单的图形函数库，有绘制直线段、圆弧、椭圆弧、填充多边形区域以及显示名字等功能。该项目采用 C++ 编写，并使用 CMake 构建工具。
+
+## 功能列表
+- 绘制直线段
+- 绘制圆弧
+- 绘制椭圆弧
+- 多边形区域填充
+- 显示名字
+
+## 编译与运行
+
+## 依赖
+
+- Windows 系统
+- CMake
+- MinGW 或其他支持 Windows 的 g++ 编译器
+
+## 步骤
+
+1. 安装 CMake 和 MinGW。确保 cmake 和 g++ 已正确配置到系统路径。
+2. 使用以下命令编译并运行项目：
+
+```shell
+.\run.bat
+```
+
+## 项目结构
+
+```css
+GraphicsLibrary/
+|── README.md
+├── CMakeLists.txt
+├── run.bat
+├── src/
+│   ├── main.cpp
+│   ├── graphics.cpp
+│   └── graphics.h
+```
+
+\end{lstlisting}
+
+\subsection{CMakeLists.txt}
+\begin{lstlisting}[language=CMake]
+cmake_minimum_required(VERSION 3.10)
+
+# 项目名称
+project(GraphicsLibrary)
+
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 11)
+
+# 设置编译器标志以支持 Unicode
+if(MINGW)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -D_UNICODE")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DUNICODE /D_UNICODE")
+endif()
+
+# 设置源文件
+set(SOURCE_FILES src/main.cpp src/graphics.cpp)
+
+# 创建可执行文件
+add_executable(GraphicsLibrary ${SOURCE_FILES})
+
+# 链接 Windows API 库（Gdi32 用于图形）
+target_link_libraries(GraphicsLibrary Gdi32)
+
+# 设置目标为 Windows GUI 程序
+set_target_properties(GraphicsLibrary PROPERTIES
+    WIN32_EXECUTABLE YES  # 这会告诉 CMake 该项目是一个 Windows GUI 程序
+)
+
+\end{lstlisting}
+
+\subsection{run.bat}
+\begin{lstlisting}[language=Batch]
+@echo off
+if exist build rd /s /q build
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" ..
+mingw32-make
+if exist GraphicsLibrary.exe (
+    GraphicsLibrary.exe
+)
+
+\end{lstlisting}
+
+\subsection{main.cpp}
+\begin{lstlisting}[language=C++]
+#include <windows.h>
+#include "graphics.h"
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
+        case WM_PAINT: {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+            // 绘制红色的直线
+            DrawLine(hdc, 50, 50, 400, 50, RGB(255, 0, 0));
+            
+            // 绘制绿色的半圆弧
+            DrawArc(hdc, 300, 200, 100, 0, 180, RGB(0, 255, 0));
+            
+            // 绘制蓝色的椭圆弧
+            DrawEllipseArc(hdc, 500, 200, 100, 60, 0, 180, RGB(0, 0, 255));
+            
+            // 绘制黄色的三角形
+            POINT points[] = {{150, 150}, {250, 150}, {200, 250}};
+            FillPolygon(hdc, points, 3, RGB(255, 255, 0));
+            
+            // 绘制紫色的名字
+            DrawName(hdc, L"YILIU DONG", 150, 350, RGB(255, 0, 255));
+
+            EndPaint(hwnd, &ps);
+        } break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+        default:
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+    return 0;
+}
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    const wchar_t CLASS_NAME[] = L"GraphicsWindowClass";
+
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = CLASS_NAME;
+
+    RegisterClass(&wc);
+
+    HWND hwnd = CreateWindowEx(0, CLASS_NAME, L"Graphics Library", WS_OVERLAPPEDWINDOW,
+                               CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
+                               NULL, NULL, hInstance, NULL);
+
+    if (hwnd == NULL) {
+        return 0;
+    }
+
+    ShowWindow(hwnd, nCmdShow);
+    UpdateWindow(hwnd);
+
+    MSG msg = {};
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    return 0;
+}
+
+\end{lstlisting}
+
+\subsection{graphics.cpp}
+\begin{lstlisting}[language=C++]
+#include "graphics.h"
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <wchar.h>
+
+// 绘制直线的函数
+void DrawLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF color) {
+    int dx = abs(x2 - x1), dy = abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1, sy = (y1 < y2) ? 1 : -1;
+    int err = dx - dy;
+
+    while (true) {
+        SetPixel(hdc, x1, y1, color);
+        if (x1 == x2 && y1 == y2) break;
+        int e2 = err * 2;
+        if (e2 > -dy) { err -= dy; x1 += sx; }
+        if (e2 < dx) { err += dx; y1 += sy; }
+    }
+}
+
+// 绘制圆弧的函数
+void DrawArc(HDC hdc, int cx, int cy, int radius, int startAngle, int endAngle, COLORREF color) {
+    float startRad = startAngle * 3.14159f / 180;
+    float endRad = endAngle * 3.14159f / 180;
+    float step = 1.0f / radius; // 根据半径动态调整步长
+
+    for (float angle = startRad; angle <= endRad; angle += step) {
+        int x = cx + static_cast<int>(radius * cos(angle));
+        int y = cy + static_cast<int>(radius * sin(angle));
+        SetPixel(hdc, x, y, color);
+    }
+}
+
+// 绘制椭圆弧的函数
+void DrawEllipseArc(HDC hdc, int cx, int cy, int a, int b, int startAngle, int endAngle, COLORREF color) {
+    float startRad = startAngle * 3.14159f / 180;
+    float endRad = endAngle * 3.14159f / 180;
+    float step = 1.0f / std::max(a, b);
+
+    for (float angle = startRad; angle <= endRad; angle += step) {
+        int x = cx + static_cast<int>(a * cos(angle));
+        int y = cy + static_cast<int>(b * sin(angle));
+        SetPixel(hdc, x, y, color);
+    }
+}
+
+// 填充多边形的函数
+void FillPolygon(HDC hdc, POINT *points, int n, COLORREF color) {
+    LONG yMin = points[0].y, yMax = points[0].y;
+    for (int i = 1; i < n; i++) {
+        yMin = std::min(yMin, points[i].y);
+        yMax = std::max(yMax, points[i].y);
+    }
+
+    for (LONG y = yMin; y <= yMax; y++) {
+        std::vector<int> intersections;
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            if ((points[i].y <= y && points[j].y > y) || (points[i].y > y && points[j].y <= y)) {
+                int x = points[i].x + (y - points[i].y) * (points[j].x - points[i].x) / (points[j].y - points[i].y);
+                intersections.push_back(x);
+            }
+        }
+
+        std::sort(intersections.begin(), intersections.end());
+        for (size_t i = 0; i + 1 < intersections.size(); i += 2) { // 防止越界
+            for (int x = intersections[i]; x <= intersections[i + 1]; x++) {
+                SetPixel(hdc, x, y, color);
+            }
+        }
+    }
+}
+
+// 绘制单个字母 'Y' 的函数
+void DrawLetterY(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x, y, x + 10, y + 20, color);    // 左上到中间
+    DrawLine(hdc, x + 20, y, x + 10, y + 20, color); // 右上到中间
+    DrawLine(hdc, x + 10, y + 20, x + 10, y + 40, color);  // 中间到下
+}
+
+// 绘制字母 'I' 的函数
+void DrawLetterI(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x + 10, y, x + 10, y + 40, color);  // 垂直线
+    DrawLine(hdc, x, y, x + 20, y, color);            // 顶部横线
+    DrawLine(hdc, x, y + 40, x + 20, y + 40, color);  // 底部横线
+}
+
+// 绘制字母 'L' 的函数
+void DrawLetterL(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x, y, x, y + 40, color);           // 垂直线
+    DrawLine(hdc, x, y + 40, x + 20, y + 40, color); // 底部横线
+}
+
+// 绘制字母 'U' 的函数
+void DrawLetterU(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x, y, x, y + 40, color);           // 左垂直线
+    DrawLine(hdc, x + 20, y, x + 20, y + 40, color); // 右垂直线
+    DrawLine(hdc, x, y + 40, x + 20, y + 40, color); // 底部横线
+}
+
+// 绘制字母 'D' 的函数
+void DrawLetterD(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x, y, x, y + 40, color);           // 垂直线
+    DrawArc(hdc, x, y + 20, 20, 270, 450, color); // 半圆弧（右边）
+}
+
+// 绘制字母 'O' 的函数
+void DrawLetterO(HDC hdc, int x, int y, COLORREF color) {
+    DrawArc(hdc, x + 20, y + 20, 20, 0, 360, color); // 完整圆形
+}
+
+// 绘制字母 'N' 的函数
+void DrawLetterN(HDC hdc, int x, int y, COLORREF color) {
+    DrawLine(hdc, x, y, x, y + 40, color);          // 左垂直线
+    DrawLine(hdc, x + 20, y, x + 20, y + 40, color); // 右垂直线
+    DrawLine(hdc, x, y, x + 20, y + 40, color);      // 斜线
+}
+
+// 绘制字母 'G' 的函数
+void DrawLetterG(HDC hdc, int x, int y, COLORREF color) {
+    DrawArc(hdc, x + 20, y + 20, 20, 0, 270, color); // 弧形（3/4圆）
+    DrawLine(hdc, x + 20, y + 20, x + 40, y + 20, color); // 底部横线
+}
+
+// 绘制名字的函数
+void DrawName(HDC hdc, const wchar_t *name, int x, int y, COLORREF color) {
+    for (int i = 0; i < wcslen(name); ++i) {
+        wchar_t letter = name[i];
+        switch (letter) {
+            case L'Y': DrawLetterY(hdc, x, y, color); break;
+            case L'I': DrawLetterI(hdc, x, y, color); break;
+            case L'L': DrawLetterL(hdc, x, y, color); break;
+            case L'U': DrawLetterU(hdc, x, y, color); break;
+            case L'D': DrawLetterD(hdc, x, y, color); break;
+            case L'O': DrawLetterO(hdc, x, y, color); break;
+            case L'N': DrawLetterN(hdc, x, y, color); break;
+            case L'G': DrawLetterG(hdc, x, y, color); break;
+            default: 
+                // 如果字母不在case中，直接绘制字母
+                SetTextColor(hdc, color);
+                SetBkMode(hdc, TRANSPARENT); // 透明背景
+                TextOutW(hdc, x, y, &letter, 1); 
+                break;
+        }
+        x += 38; // 设置字母之间的间距
+    }
+}
+
+\end{lstlisting}
+
+\subsection{graphics.h}
+\begin{lstlisting}[language=C++]
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+
+#include <windows.h>
+
+// 绘制直线
+void DrawLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF color);
+
+// 绘制圆弧
+void DrawArc(HDC hdc, int cx, int cy, int radius, int startAngle, int endAngle, COLORREF color);
+
+// 绘制椭圆弧
+void DrawEllipseArc(HDC hdc, int cx, int cy, int a, int b, int startAngle, int endAngle, COLORREF color);
+
+// 填充多边形
+void FillPolygon(HDC hdc, POINT *points, int n, COLORREF color);
+
+// 绘制名字
+void DrawName(HDC hdc, const wchar_t *name, int x, int y, COLORREF color);
+
+#endif // GRAPHICS_H
+
+\end{lstlisting}
+
+
 \end{document}
